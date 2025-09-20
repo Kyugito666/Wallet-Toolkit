@@ -1,0 +1,29 @@
+{
+  "name": "wallet-cli",
+  "version": "1.0.0",
+  "description": "Crypto Wallet Toolkit CLI",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "build": "pkg ."
+  },
+  "bin": "index.js",
+  "pkg": {
+    "targets": [ "node18-win-x64" ],
+    "outputPath": "dist"
+  },
+  "author": "Kyugito666",
+  "license": "ISC",
+  "dependencies": {
+    "@mysten/sui": "^1.0.3",
+    "@solana/web3.js": "^1.91.8",
+    "boxen": "^6.2.1",
+    "chalk": "^5.3.0",
+    "cli-table3": "^0.6.5",
+    "ethers": "^6.13.0",
+    "figlet": "^1.7.0",
+    "inquirer": "^9.2.22",
+    "ora": "^8.0.1"
+  }
+}
