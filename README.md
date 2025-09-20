@@ -69,7 +69,7 @@ Proses instalasi dibagi per langkah agar mudah diikuti.
 
 1.  **Clone Repositori**
     ```bash
-    git clone [https://github.com/Kyugito666/wallet-toolkit.git](https://github.com/Kyugito666/wallet-toolkit.git)
+    git clone https://github.com/Kyugito666/wallet-toolkit.git
     ```
 2.  **Masuk ke Direktori Proyek**
     ```bash
