@@ -42,7 +42,7 @@ export async function showMainMenu_WalletLoaded() {
     const { action } = await inquirer.prompt([{
         type: 'list', name: 'action', message: 'Wallet Aktif:',
         choices: [
-            '1. Cek Saldo', 
+            '1. Cek Saldo',
             '2. Tampilkan Detail Lengkap',
             '3. Simpan Ulang ke File (Backup)',
             '4. Faucet (Coming Soon)',
@@ -61,8 +61,9 @@ export async function selectPhraseFromFile() {
             return null;
         }
         const data = fs.readFileSync('phrase.txt', 'utf8');
-        const entries = data.trim().split(/\[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z\]\n/).filter(p => p.trim() !== '');
-        const timestamps = data.match(/\[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z\]/g) || [];
+        const entries = data.trim().split(/\/).filter(p => p.trim() !== '');
+        const sources = data.match(/\/g) || [];
+
         if (entries.length === 0) {
             console.log(chalk.yellow('\nFile phrase.txt kosong.'));
             return null;
@@ -70,9 +71,10 @@ export async function selectPhraseFromFile() {
 
         const choices = entries.map((entry, index) => {
             const phrase = entry.trim().replace(/\n/g, ' ');
-            return { 
-                name: `${chalk.gray(timestamps[index])} ${phrase.substring(0, 20)}...`, 
-                value: phrase 
+            const sourceLabel = sources[index] ? sources[index] : ``;
+            return {
+                name: `${chalk.gray(sourceLabel)} ${phrase.substring(0, 30)}...`,
+                value: phrase
             };
         });
 
@@ -80,26 +82,38 @@ export async function selectPhraseFromFile() {
             type: 'list', name: 'selectedPhrase', message: 'Pilih phrase untuk dimuat:', choices: choices,
         }]);
         return selectedPhrase;
-    } catch { 
+    } catch {
         return null;
     }
 }
 
 export function saveWalletToFile(wallet) {
     try {
+        let lastSourceNumber = 0;
+        let fileContent = '';
         if (fs.existsSync('phrase.txt')) {
-            const existingPhrases = fs.readFileSync('phrase.txt', 'utf8');
-            if (existingPhrases.includes(wallet.mnemonic)) {
+            fileContent = fs.readFileSync('phrase.txt', 'utf8');
+            if (fileContent.includes(wallet.mnemonic)) {
                 console.log(chalk.yellow('\nInfo: Data wallet ini sudah tersimpan. Proses backup dilewati.'));
                 return;
             }
+            const sourceMatches = fileContent.match(/\/g);
+            if (sourceMatches) {
+                const lastMatch = sourceMatches[sourceMatches.length - 1];
+                lastSourceNumber = parseInt(lastMatch.match(/\d+/)[0]);
+            }
         }
 
+        const newSourceNumber = lastSourceNumber + 1;
+        const phraseContent = `${wallet.mnemonic.trim()}`;
+        const contentToAppend = (fileContent.length > 0 && !fileContent.endsWith('\n') ? '\n' : '') + phraseContent + '\n';
+
+        fs.appendFileSync('phrase.txt', contentToAppend, 'utf8');
+
+        // Keep timestamp for other logs for consistency
         const timestamp = new Date().toISOString();
         const appendToFile = (filePath, data) => fs.appendFileSync(filePath, `[${timestamp}] ${data}\n`, 'utf8');
-        
-        const phraseContent = `[${timestamp}]\n${wallet.mnemonic}\n\n`;
-        fs.appendFileSync('phrase.txt', phraseContent, 'utf8');
+
         appendToFile('address_evm.txt', wallet.evm.address);
         appendToFile('address_sol.txt', wallet.solana.address);
         appendToFile('address_sui.txt', wallet.sui.address);
@@ -132,7 +146,7 @@ export function displayWalletDetails(walletData) {
         [chalk.yellow('Solana'), chalk.white(walletData.solana.address), chalk.white(walletData.solana.privateKey)],
         [chalk.yellow('Sui'), chalk.white(walletData.sui.address), chalk.white(walletData.sui.privateKey)]
     );
-    
+
     console.log(chalk.bold.cyan('\n--- Detail Wallet Aktif ---'));
     console.log(table.toString());
 }
@@ -149,7 +163,7 @@ export async function displayBalances(balanceFunction) {
     try {
         const balances = await balanceFunction();
         spinner.succeed(chalk.green('Saldo berhasil diambil!'));
-        
+
         const table = new Table({ head: [chalk.cyan('Jaringan'), chalk.cyan('Saldo')] });
         table.push(
             [chalk.yellow('EVM (ETH)'), chalk.white(`${balances.evm} ETH`)],
