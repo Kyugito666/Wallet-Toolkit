@@ -2,6 +2,7 @@ import { Wallet, HDNodeWallet, Mnemonic, JsonRpcProvider, formatEther, encodeBas
 import { Connection, Keypair, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 import { SuiClient, getFullnodeUrl } from '@mysten/sui/client';
+import { derivePath } from 'ed25519-hd-key'; // <-- IMPORT BARU
 
 const RPC_URLS = {
     mainnet: {
@@ -16,21 +17,23 @@ const RPC_URLS = {
 
 export function getKeysFromMnemonic(mnemonic) {
     const seed = Mnemonic.fromPhrase(mnemonic).computeSeed();
-    const masterNode = HDNodeWallet.fromSeed(seed);
 
-    const evmNode = masterNode.derivePath("m/44'/60'/0'/0/0");
-    const solanaNode = masterNode.derivePath("m/44'/501'/0'/0'");
-    const suiNode = masterNode.derivePath("m/44'/784'/0'/0'/0'");
-
+    // --- 1. Derivasi EVM (SECP256k1) ---
+    // Metode ini tetap sama, menggunakan ethers.js
+    const masterNodeEVM = HDNodeWallet.fromSeed(seed);
+    const evmNode = masterNodeEVM.derivePath("m/44'/60'/0'/0/0");
     const evmWallet = new Wallet(evmNode.privateKey);
-    
-    const solanaHexKey = solanaNode.privateKey;
-    const solanaSeed = Buffer.from(solanaHexKey.slice(2), 'hex');
+
+    // --- 2. Derivasi Solana (Ed25519) ---
+    // METODE BARU: Menggunakan library khusus Ed25519
+    // Path ini adalah yang digunakan oleh Phantom dan Metamask Snap
+    const solanaSeed = derivePath("m/44'/501'/0'/0'", Buffer.from(seed.slice(2), 'hex')).key;
     const solanaKeypair = Keypair.fromSeed(solanaSeed);
 
-    const suiHexKey = suiNode.privateKey;
-    const suiSecretKey = Buffer.from(suiHexKey.slice(2), 'hex');
-    const suiKeypair = Ed25519Keypair.fromSecretKey(suiSecretKey);
+    // --- 3. Derivasi Sui (Ed25519) ---
+    // Juga menggunakan library khusus Ed25519 untuk konsistensi
+    const suiSeed = derivePath("m/44'/784'/0'/0'/0'", Buffer.from(seed.slice(2), 'hex')).key;
+    const suiKeypair = Ed25519Keypair.fromSecretKey(suiSeed);
     
     return {
         mnemonic: mnemonic,
