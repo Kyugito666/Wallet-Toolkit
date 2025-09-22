@@ -32,7 +32,13 @@ export function showWalletStatus(walletData) {
 export async function showMainMenu_NoWallet() {
     const { action } = await inquirer.prompt([{
         type: 'list', name: 'action', message: 'Pilih Aksi:',
-        choices: [ '1. Buat Wallet Baru', '2. Muat Wallet dari File', new inquirer.Separator(), '3. Keluar'],
+        choices: [
+            '1. Buat Wallet Baru',
+            '2. Muat Wallet dari File',
+            '3. Sinkronkan Wallet dari phrase.txt',
+            new inquirer.Separator(),
+            '4. Keluar'
+        ],
         filter(val) { return val.split('. ')[1]; }
     }]);
     return action;
@@ -61,7 +67,6 @@ export async function selectPhraseFromFile() {
             return null;
         }
         const data = fs.readFileSync('phrase.txt', 'utf8');
-        // PERBAIKAN: Memisahkan berdasarkan baris baru (enter)
         const phrases = data.trim().split(/\r?\n/).filter(line => line.trim() !== '');
 
         if (phrases.length === 0) {
@@ -86,24 +91,15 @@ export async function selectPhraseFromFile() {
     }
 }
 
+// --- PERUBAHAN UTAMA ADA DI FUNGSI INI ---
 export function saveWalletToFile(wallet) {
     try {
-        let fileContent = '';
-        if (fs.existsSync('phrase.txt')) {
-            fileContent = fs.readFileSync('phrase.txt', 'utf8');
-            if (fileContent.includes(wallet.mnemonic)) {
-                console.log(chalk.yellow('\nInfo: Data wallet ini sudah tersimpan. Proses backup dilewati.'));
-                return;
-            }
+        // Fungsi appendToFile sekarang tidak lagi menggunakan timestamp
+        const appendToFile = (filePath, data) => {
+            // Menambah baris baru di awal jika file sudah ada isinya
+            const content = fs.existsSync(filePath) && fs.readFileSync(filePath, 'utf8').length > 0 ? '\n' + data : data;
+            fs.appendFileSync(filePath, content, 'utf8');
         }
-        
-        // PERBAIKAN: Menyimpan hanya phrase dengan baris baru
-        const contentToAppend = (fileContent.length > 0 && !fileContent.endsWith('\n') ? '\n' : '') + wallet.mnemonic.trim() + '\n';
-        fs.appendFileSync('phrase.txt', contentToAppend, 'utf8');
-
-        // Untuk file log lain, tetap gunakan timestamp
-        const timestamp = new Date().toISOString();
-        const appendToFile = (filePath, data) => fs.appendFileSync(filePath, `[${timestamp}] ${data}\n`, 'utf8');
 
         appendToFile('address_evm.txt', wallet.evm.address);
         appendToFile('address_sol.txt', wallet.solana.address);
@@ -111,7 +107,17 @@ export function saveWalletToFile(wallet) {
         appendToFile('privatekey_evm.txt', wallet.evm.privateKey);
         appendToFile('privatekey_sol.txt', wallet.solana.privateKey);
         appendToFile('privatekey_sui.txt', wallet.sui.privateKey);
-        console.log(chalk.green.bold('\n✅ Data wallet baru berhasil ditambahkan ke file .txt.'));
+
+        // Logika untuk menyimpan phrase.txt tetap sama (tanpa timestamp)
+        let phraseContent = '';
+        if (fs.existsSync('phrase.txt')) {
+            phraseContent = fs.readFileSync('phrase.txt', 'utf8');
+        }
+        if (!phraseContent.includes(wallet.mnemonic.trim())) {
+            const contentToAppend = (phraseContent.length > 0 && !phraseContent.endsWith('\n') ? '\n' : '') + wallet.mnemonic.trim();
+            fs.appendFileSync('phrase.txt', contentToAppend, 'utf8');
+        }
+
     } catch (error) {
         console.log(chalk.red.bold(`\n❌ Gagal menyimpan file:`, error.message));
     }
@@ -138,7 +144,7 @@ export function displayWalletDetails(walletData) {
         [chalk.yellow('Sui'), chalk.white(walletData.sui.address), chalk.white(walletData.sui.privateKey)]
     );
 
-    console.log(chalk.bold.cyan('\n--- Detail Wallet Aktif ---'));
+    console.log(chalk.bold.cyan('\n--- Detail Wallet ---'));
     console.log(table.toString());
 }
 
