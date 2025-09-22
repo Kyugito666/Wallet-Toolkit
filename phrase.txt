@@ -1,0 +1,3 @@
+seed phrase1
+seed phrase2
+seterusnya
