@@ -61,6 +61,7 @@ export async function selectPhraseFromFile() {
             return null;
         }
         const data = fs.readFileSync('phrase.txt', 'utf8');
+        // Perbaikan: Menggunakan regular expression yang benar
         const entries = data.trim().split(/\/).filter(p => p.trim() !== '');
         const sources = data.match(/\/g) || [];
 
@@ -82,7 +83,8 @@ export async function selectPhraseFromFile() {
             type: 'list', name: 'selectedPhrase', message: 'Pilih phrase untuk dimuat:', choices: choices,
         }]);
         return selectedPhrase;
-    } catch {
+    } catch (e) {
+        console.error(chalk.red('Gagal membaca file phrase.txt:'), e);
         return null;
     }
 }
@@ -105,12 +107,10 @@ export function saveWalletToFile(wallet) {
         }
 
         const newSourceNumber = lastSourceNumber + 1;
-        const phraseContent = `${wallet.mnemonic.trim()}`;
-        const contentToAppend = (fileContent.length > 0 && !fileContent.endsWith('\n') ? '\n' : '') + phraseContent + '\n';
+        const phraseContent = `\n\n${wallet.mnemonic.trim()}`;
+        
+        fs.appendFileSync('phrase.txt', phraseContent, 'utf8');
 
-        fs.appendFileSync('phrase.txt', contentToAppend, 'utf8');
-
-        // Keep timestamp for other logs for consistency
         const timestamp = new Date().toISOString();
         const appendToFile = (filePath, data) => fs.appendFileSync(filePath, `[${timestamp}] ${data}\n`, 'utf8');
 
