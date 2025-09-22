@@ -1,6 +1,8 @@
 import { Wallet } from "ethers";
 import chalk from "chalk";
 import readline from 'readline';
+import fs from 'fs'; // <-- Tambahkan fs
+import ora from 'ora'; // <-- Tambahkan ora untuk spinner
 import * as crypto from './crypto.js';
 import * as ui from './ui.js';
 
@@ -33,6 +35,7 @@ async function runWalletLoadedMenu() {
             }
             case 'Simpan Ulang ke File (Backup)': {
                 ui.saveWalletToFile(activeWallet);
+                 console.log(chalk.green.bold('\n✅ Data wallet berhasil disimpan ulang ke file .txt.'));
                 break;
             }
             case 'Faucet (Coming Soon)': {
@@ -61,6 +64,7 @@ async function main() {
                 activeWallet = crypto.getKeysFromMnemonic(newWallet.mnemonic.phrase);
                 ui.displayNewWallet(newWallet.mnemonic.phrase);
                 ui.saveWalletToFile(activeWallet);
+                console.log(chalk.green.bold('\n✅ Data wallet baru berhasil ditambahkan ke file .txt.'));
                 await runWalletLoadedMenu();
                 break;
             }
@@ -73,6 +77,50 @@ async function main() {
                 } else {
                     await ui.askToContinue();
                 }
+                break;
+            }
+            // --- LOGIKA FITUR BARU ---
+            case 'Sinkronkan Wallet dari phrase.txt': {
+                const spinner = ora('Membaca file dan memproses wallet...').start();
+                try {
+                    if (!fs.existsSync('phrase.txt')) {
+                        spinner.fail(chalk.red('File phrase.txt tidak ditemukan.'));
+                        await ui.askToContinue();
+                        break;
+                    }
+
+                    const phrases = fs.readFileSync('phrase.txt', 'utf8').trim().split(/\r?\n/).filter(line => line.trim() !== '');
+                    let existingAddresses = new Set();
+                    if (fs.existsSync('address_evm.txt')) {
+                        const addressesData = fs.readFileSync('address_evm.txt', 'utf8');
+                        const matches = addressesData.matchAll(/\]\s*(0x[a-fA-F0-9]{40})/g);
+                        for (const match of matches) {
+                            existingAddresses.add(match[1]);
+                        }
+                    }
+
+                    let newWallets = 0;
+                    let skippedWallets = 0;
+
+                    for (const phrase of phrases) {
+                        const walletData = crypto.getKeysFromMnemonic(phrase);
+                        if (!existingAddresses.has(walletData.evm.address)) {
+                            ui.saveWalletToFile(walletData);
+                            existingAddresses.add(walletData.evm.address);
+                            newWallets++;
+                        } else {
+                            skippedWallets++;
+                        }
+                    }
+                    
+                    spinner.succeed(chalk.green('Sinkronisasi selesai!'));
+                    console.log(chalk.cyan(`\n✨ Hasil: ${newWallets} wallet baru ditambahkan, ${skippedWallets} wallet sudah ada dan dilewati.`));
+
+                } catch (error) {
+                    spinner.fail(chalk.red('Terjadi kesalahan saat sinkronisasi.'));
+                    console.error(error);
+                }
+                await ui.askToContinue();
                 break;
             }
             case 'Keluar': {
