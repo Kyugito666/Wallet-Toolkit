@@ -2,7 +2,7 @@
   <img src="https://raw.githubusercontent.com/Kyugito666/Kyugito666/main/assets/duong2.gif" alt="Logo" width="200">
   <h1 align="center">Wallet Toolkit CLI</h1>
   <p align="center">
-    Sebuah alat antarmuka baris perintah (CLI) yang serbaguna untuk mengelola dompet kripto multi-jaringan. Buat, muat, dan periksa saldo untuk jaringan berbasis EVM, Solana, dan Sui dengan mudah.
+    Sebuah alat antarmuka baris perintah (CLI) yang serbaguna untuk mengelola dompet kripto multi-jaringan. Buat, muat, dan sinkronkan dompet untuk jaringan berbasis EVM, Solana, dan Sui dengan mudah.
   </p>
   
   <p align="center">
@@ -17,7 +17,7 @@
 
 ## 🌟 Tampilan Antarmuka
 
-Wallet Toolkit CLI menawarkan antarmuka yang bersih dan interaktif untuk navigasi yang mudah, bahkan untuk pengguna baru sekalipun.
+Wallet Toolkit CLI menawarkan antarmuka yang bersih dan interaktif, kini dengan fitur sinkronisasi otomatis yang canggih.
 
 ```text
      ┌───────────────────────────────────┐
@@ -25,18 +25,17 @@ Wallet Toolkit CLI menawarkan antarmuka yang bersih dan interaktif untuk navigas
      │ Dibuat oleh: Kyugito666 & Gemini  │
      └───────────────────────────────────┘
 
-      Dompet Aktif: 0x1234...AbCd
+      Belum ada dompet yang aktif.
 
-     ╭────────────── Wallet Aktif ──────────────╮
-     │ Pilihan    │ Deskripsi                   │
-     ├────────────┼─────────────────────────────┤
-     │ [1]        │ Cek Saldo                   │
-     │ [2]        │ Tampilkan Detail Lengkap    │
-     │ [3]        │ Simpan Ulang ke File        │
-     │ [4]        │ Faucet (Coming Soon)        │
-     │ [5]        │ Keluarkan Wallet (Kembali)  │
-     ╰────────────┴─────────────────────────────╯
-     Pilih Aksi: › Cek Saldo
+     ╭────────────────── Menu ───────────────────╮
+     │ Pilihan    │ Deskripsi                    │
+     ├────────────┼──────────────────────────────┤
+     │ [1]        │ Buat Wallet Baru             │
+     │ [2]        │ Muat Wallet dari File        │
+     │ [3]        │ Sinkronkan Wallet dari ...   │
+     │ [4]        │ Keluar                       │
+     ╰────────────┴──────────────────────────────╯
+     Pilih Aksi: › Sinkronkan Wallet dari phrase.txt
 ````
 
 -----
@@ -44,11 +43,11 @@ Wallet Toolkit CLI menawarkan antarmuka yang bersih dan interaktif untuk navigas
 ## ✨ Fitur Utama
 
   - **Dukungan Multi-Jaringan**: Kelola aset di **EVM** (Ethereum, BSC, Polygon, dll.), **Solana**, dan **Sui** dari satu tempat.
-  - **Pembuatan & Impor Wallet**: Buat wallet baru secara instan atau muat *mnemonic phrase* yang sudah ada dari file `phrase.txt`.
-  - **Pengecekan Saldo Real-time**: Periksa saldo token native (ETH, SOL, SUI) di jaringan `mainnet` atau `testnet`.
-  - **Pencadangan Aman & Otomatis**: Setiap wallet yang dibuat atau dimuat akan secara otomatis dicadangkan ke dalam file `.txt` terpisah untuk setiap detailnya (alamat, kunci privat, mnemonic).
+  - **Sinkronisasi Otomatis**: Cukup tambahkan *seed phrase* baru Anda ke `phrase.txt`, dan jalankan fitur sinkronisasi. Aplikasi akan secara otomatis mendeteksi dan menyimpan alamat serta *private key* untuk semua *phrase* yang belum tersimpan.
+  - **Deteksi Duplikat Cerdas**: Fitur sinkronisasi secara otomatis akan melewati *phrase* yang detailnya sudah tersimpan, memastikan tidak ada data ganda di file Anda.
+  - **Penyimpanan Bersih & Rapi**: Semua detail (alamat, kunci privat, dan *mnemonic*) disimpan dalam format teks murni, satu entri per baris, tanpa awalan tanggal atau metadata tambahan. Ini membuat file mudah dibaca dan dikelola.
+  - **Pengecekan Saldo Real-time**: Periksa saldo token native (ETH, SOL, SUI) di jaringan `mainnet` atau `testnet` untuk dompet yang sedang aktif.
   - **Antarmuka Interaktif**: Pengalaman pengguna yang ramah dengan menu berbasis `inquirer` yang jelas dan mudah dinavigasi.
-  - **Tampilan Detail Lengkap**: Tampilkan alamat dan kunci privat untuk semua jaringan dalam format tabel yang rapi dan mudah dibaca.
 
 -----
 
@@ -84,14 +83,15 @@ Proses instalasi dibagi per langkah agar mudah diikuti.
 
 ## ⚙️ Cara Penggunaan
 
-1.  **Jalankan Aplikasi**: Dari dalam direktori proyek, jalankan perintah:
+1.  **(Opsional) Tambahkan Seed Phrase**: Buka file `phrase.txt` dan tambahkan *seed phrase* Anda, masing-masing di baris baru.
+2.  **Jalankan Aplikasi**: Dari dalam direktori proyek, jalankan perintah:
     ```bash
     npm start
     ```
-2.  **Pilih Menu Utama**:
-      - Pilih **'Buat Wallet Baru'** untuk menghasilkan *mnemonic phrase* baru. Detail wallet akan langsung ditampilkan dan disimpan.
-      - Pilih **'Muat Wallet dari File'** untuk mengimpor wallet dari `phrase.txt` yang sudah ada.
-3.  **Gunakan Fitur**: Setelah wallet aktif, Anda dapat menggunakan berbagai fitur seperti mengecek saldo, melihat detail, atau melakukan backup ulang.
+3.  **Pilih Menu Utama**:
+      - **'Buat Wallet Baru'**: Untuk menghasilkan *mnemonic phrase* baru. Detailnya akan langsung ditampilkan dan disimpan ke semua file `.txt` yang relevan.
+      - **'Muat Wallet dari File'**: Untuk memilih dan mengaktifkan salah satu *wallet* dari `phrase.txt`.
+      - **'Sinkronkan Wallet dari phrase.txt'**: Untuk mengekstrak secara massal alamat dan kunci privat dari semua *phrase* di `phrase.txt` yang belum pernah diproses.
 
 -----
 
@@ -99,11 +99,17 @@ Proses instalasi dibagi per langkah agar mudah diikuti.
 
 ```
 /wallet-toolkit
-├── index.js          # Skrip utama & logika alur aplikasi
-├── crypto.js         # Fungsi inti terkait kriptografi (pembuatan kunci, cek saldo)
-├── ui.js             # Semua komponen antarmuka pengguna (menu, tabel, notifikasi)
-├── package.json      # Konfigurasi proyek dan daftar dependensi
-└── phrase.txt        # (Dibuat otomatis) Tempat menyimpan mnemonic phrase Anda
+├── index.js                # Skrip utama & logika alur aplikasi
+├── crypto.js               # Fungsi inti terkait kriptografi
+├── ui.js                   # Semua komponen antarmuka pengguna
+├── package.json            # Konfigurasi proyek dan dependensi
+├── phrase.txt              # (Dibuat otomatis) Tempat menyimpan mnemonic Anda
+├── address_evm.txt         # (Dibuat otomatis) Alamat EVM
+├── privatekey_evm.txt      # (Dibuat otomatis) Kunci Privat EVM
+├── address_sol.txt         # (Dibuat otomatis) Alamat Solana
+├── privatekey_sol.txt      # (Dibuat otomatis) Kunci Privat Solana
+├── address_sui.txt         # (Dibuat otomatis) Alamat Sui
+└── privatekey_sui.txt      # (Dibuat otomatis) Kunci Privat Sui
 ```
 
 -----
@@ -112,14 +118,12 @@ Proses instalasi dibagi per langkah agar mudah diikuti.
 
 Proyek ini dibuat dan dikelola dengan ❤️ oleh:
 
-| Avatar | Kontributor | Peran |
-| :---: |:---:|:---:|
+| Avatar                                                                                     | Kontributor                               | Peran                       |
+| :----------------------------------------------------------------------------------------- | :---------------------------------------- | :-------------------------- |
 | <img src="https://avatars.githubusercontent.com/Kyugito666" width="50" style="border-radius:50%"> | **[Kyugito666](https://github.com/Kyugito666)** | Konsep & Pengembangan Utama |
-| <img src="https://raw.githubusercontent.com/Kyugito666/Kyugito666/main/assets/gemini.png" width="50" style="border-radius:50%"> | **Gemini AI** | Asisten & Refactoring Kode |
+| <img src="https://raw.githubusercontent.com/Kyugito666/Kyugito666/main/assets/gemini.png" width="50" style="border-radius:50%"> | **Gemini AI** | Asisten & Refactoring Kode  |
 
 Jangan ragu untuk mengunjungi profil saya dan melihat proyek-proyek lainnya\!
-
-[](https://github.com/Kyugito666)
 
 -----
 
@@ -133,3 +137,10 @@ Lihat juga beberapa proyek saya yang lain:
 -----
 
 ## 📄 Lisensi
+
+Proyek ini dilisensikan di bawah Lisensi ISC.
+
+```
+
+Dokumentasi ini sekarang sudah akurat dan keren, sama seperti skripnya!
+```
