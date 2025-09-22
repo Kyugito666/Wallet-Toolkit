@@ -61,20 +61,17 @@ export async function selectPhraseFromFile() {
             return null;
         }
         const data = fs.readFileSync('phrase.txt', 'utf8');
-        // Perbaikan: Menggunakan regular expression yang benar
-        const entries = data.trim().split(/\/).filter(p => p.trim() !== '');
-        const sources = data.match(/\/g) || [];
+        // PERBAIKAN: Memisahkan berdasarkan baris baru (enter)
+        const phrases = data.trim().split(/\r?\n/).filter(line => line.trim() !== '');
 
-        if (entries.length === 0) {
+        if (phrases.length === 0) {
             console.log(chalk.yellow('\nFile phrase.txt kosong.'));
             return null;
         }
 
-        const choices = entries.map((entry, index) => {
-            const phrase = entry.trim().replace(/\n/g, ' ');
-            const sourceLabel = sources[index] ? sources[index] : ``;
+        const choices = phrases.map((phrase, index) => {
             return {
-                name: `${chalk.gray(sourceLabel)} ${phrase.substring(0, 30)}...`,
+                name: `[${index + 1}] ${phrase.substring(0, 40)}...`,
                 value: phrase
             };
         });
@@ -91,7 +88,6 @@ export async function selectPhraseFromFile() {
 
 export function saveWalletToFile(wallet) {
     try {
-        let lastSourceNumber = 0;
         let fileContent = '';
         if (fs.existsSync('phrase.txt')) {
             fileContent = fs.readFileSync('phrase.txt', 'utf8');
@@ -99,18 +95,13 @@ export function saveWalletToFile(wallet) {
                 console.log(chalk.yellow('\nInfo: Data wallet ini sudah tersimpan. Proses backup dilewati.'));
                 return;
             }
-            const sourceMatches = fileContent.match(/\/g);
-            if (sourceMatches) {
-                const lastMatch = sourceMatches[sourceMatches.length - 1];
-                lastSourceNumber = parseInt(lastMatch.match(/\d+/)[0]);
-            }
         }
-
-        const newSourceNumber = lastSourceNumber + 1;
-        const phraseContent = `\n\n${wallet.mnemonic.trim()}`;
         
-        fs.appendFileSync('phrase.txt', phraseContent, 'utf8');
+        // PERBAIKAN: Menyimpan hanya phrase dengan baris baru
+        const contentToAppend = (fileContent.length > 0 && !fileContent.endsWith('\n') ? '\n' : '') + wallet.mnemonic.trim() + '\n';
+        fs.appendFileSync('phrase.txt', contentToAppend, 'utf8');
 
+        // Untuk file log lain, tetap gunakan timestamp
         const timestamp = new Date().toISOString();
         const appendToFile = (filePath, data) => fs.appendFileSync(filePath, `[${timestamp}] ${data}\n`, 'utf8');
 
